@@ -65,7 +65,9 @@ export interface PropertyImage {
   url: string;
   is_primary: boolean;
   order_index: number;
+  caption: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 export interface PropertyVideo {

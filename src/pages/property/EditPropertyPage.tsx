@@ -5,6 +5,7 @@ import {
   Image, ChevronRight, ChevronLeft, CheckCircle, Loader2, AlertCircle, Trash2
 } from 'lucide-react';
 import Layout from '../../components/layout/Layout';
+import PropertyImageUpload from '../../components/property/PropertyImageUpload';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import type { PropertyType, OperationType, PropertyCondition, Property, PropertyImage } from '../../types/database';
@@ -87,7 +88,7 @@ export default function EditPropertyPage() {
     price: '',
     currency: 'USD',
     status: 'active' as Property['status'],
-    imageUrls: ['']
+    images: [] as PropertyImage[]
   });
 
   useEffect(() => {
@@ -130,9 +131,8 @@ export default function EditPropertyPage() {
       return;
     }
 
-    const imageUrls = property.images
-      ?.sort((a, b) => a.order_index - b.order_index)
-      .map(img => img.url) || [''];
+    const sortedImages = property.images
+      ?.sort((a, b) => a.order_index - b.order_index) || [];
 
     setFormData({
       operationType: property.operation_type,
@@ -155,7 +155,7 @@ export default function EditPropertyPage() {
       price: property.price.toString(),
       currency: property.currency,
       status: property.status,
-      imageUrls: imageUrls.length > 0 ? imageUrls : ['']
+      images: sortedImages
     });
 
     setLoading(false);
@@ -174,22 +174,8 @@ export default function EditPropertyPage() {
     }));
   };
 
-  const addImageUrl = () => {
-    setFormData(prev => ({ ...prev, imageUrls: [...prev.imageUrls, ''] }));
-  };
-
-  const updateImageUrl = (index: number, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      imageUrls: prev.imageUrls.map((url, i) => i === index ? value : url)
-    }));
-  };
-
-  const removeImageUrl = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      imageUrls: prev.imageUrls.filter((_, i) => i !== index)
-    }));
+  const updateImages = (images: PropertyImage[]) => {
+    setFormData(prev => ({ ...prev, images }));
   };
 
   const canProceed = () => {
@@ -240,23 +226,6 @@ export default function EditPropertyPage() {
       setError('Error al guardar los cambios');
       setSaving(false);
       return;
-    }
-
-    await supabase
-      .from('property_images')
-      .delete()
-      .eq('property_id', id);
-
-    const validUrls = formData.imageUrls.filter(url => url.trim() !== '');
-    if (validUrls.length > 0) {
-      await supabase.from('property_images').insert(
-        validUrls.map((url, index) => ({
-          property_id: id,
-          url,
-          is_primary: index === 0,
-          order_index: index
-        }))
-      );
     }
 
     setSaving(false);
@@ -761,40 +730,12 @@ export default function EditPropertyPage() {
                   Fotos de la propiedad
                 </h2>
 
-                <p className="text-gray-600 mb-6">
-                  Agrega URLs de imagenes de tu propiedad. La primera imagen sera la principal.
-                </p>
-
-                <div className="space-y-3">
-                  {formData.imageUrls.map((url, index) => (
-                    <div key={index} className="flex gap-2">
-                      <input
-                        type="url"
-                        value={url}
-                        onChange={(e) => updateImageUrl(index, e.target.value)}
-                        placeholder="https://ejemplo.com/imagen.jpg"
-                        className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-                      />
-                      {formData.imageUrls.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeImageUrl(index)}
-                          className="px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          Eliminar
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={addImageUrl}
-                  className="mt-4 text-brand-500 font-semibold hover:text-brand-600"
-                >
-                  + Agregar otra imagen
-                </button>
+                <PropertyImageUpload
+                  propertyId={id}
+                  images={formData.images}
+                  onImagesChange={updateImages}
+                  maxImages={10}
+                />
               </div>
             )}
 

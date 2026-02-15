@@ -6,9 +6,10 @@ import {
   Video, FileText
 } from 'lucide-react';
 import Layout from '../../components/layout/Layout';
+import PropertyImageUpload from '../../components/property/PropertyImageUpload';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import type { PropertyType, OperationType, PropertyCondition } from '../../types/database';
+import type { PropertyType, OperationType, PropertyCondition, PropertyImage } from '../../types/database';
 
 const steps = [
   { id: 1, title: 'Tipo', icon: Home },
@@ -72,7 +73,7 @@ export default function PublishPropertyPage() {
     amenities: [] as string[],
     price: '',
     currency: 'USD',
-    imageUrls: [''],
+    images: [] as PropertyImage[],
     videoUrls: [''],
     planUrls: [''],
     floor: '',
@@ -95,22 +96,8 @@ export default function PublishPropertyPage() {
     }));
   };
 
-  const addImageUrl = () => {
-    setFormData(prev => ({ ...prev, imageUrls: [...prev.imageUrls, ''] }));
-  };
-
-  const updateImageUrl = (index: number, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      imageUrls: prev.imageUrls.map((url, i) => i === index ? value : url)
-    }));
-  };
-
-  const removeImageUrl = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      imageUrls: prev.imageUrls.filter((_, i) => i !== index)
-    }));
+  const updateImages = (images: PropertyImage[]) => {
+    setFormData(prev => ({ ...prev, images }));
   };
 
   const addVideoUrl = () => {
@@ -199,14 +186,14 @@ export default function PublishPropertyPage() {
       .single();
 
     if (!error && property) {
-      const validImageUrls = formData.imageUrls.filter(url => url.trim() !== '');
-      if (validImageUrls.length > 0) {
+      if (formData.images.length > 0) {
         await supabase.from('property_images').insert(
-          validImageUrls.map((url, index) => ({
+          formData.images.map(img => ({
             property_id: property.id,
-            url,
-            is_primary: index === 0,
-            order_index: index
+            url: img.url,
+            is_primary: img.is_primary,
+            order_index: img.order_index,
+            caption: img.caption
           }))
         );
       }
@@ -767,42 +754,11 @@ export default function PublishPropertyPage() {
                 </div>
 
                 {multimediaTab === 'images' && (
-                  <div>
-                    <p className="text-gray-600 mb-6">
-                      Agrega URLs de imágenes de tu propiedad. La primera imagen será la principal del carrusel.
-                    </p>
-
-                    <div className="space-y-3">
-                      {formData.imageUrls.map((url, index) => (
-                        <div key={index} className="flex gap-2">
-                          <input
-                            type="url"
-                            value={url}
-                            onChange={(e) => updateImageUrl(index, e.target.value)}
-                            placeholder="https://ejemplo.com/imagen.jpg"
-                            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-                          />
-                          {formData.imageUrls.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => removeImageUrl(index)}
-                              className="px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            >
-                              Eliminar
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={addImageUrl}
-                      className="mt-4 text-brand-500 font-semibold hover:text-brand-600"
-                    >
-                      + Agregar otra imagen
-                    </button>
-                  </div>
+                  <PropertyImageUpload
+                    images={formData.images}
+                    onImagesChange={updateImages}
+                    maxImages={10}
+                  />
                 )}
 
                 {multimediaTab === 'videos' && (
