@@ -59,7 +59,7 @@ export default function HomePage() {
 
             <p className="text-lg md:text-xl text-white/70 mb-10 leading-relaxed max-w-2xl">
               Propiedades publicadas directamente por sus Dueños.
-              Comprá y Vendé Sin comisión inmobiliaria con el respaldo de nuestra plataforma.
+              Comprá y Vendé Sin comisión inmobiliaria con el respaldo de nuestra plataforma
             </p>
 
             <div className="bg-white rounded-lg p-2 shadow-elegant-xl max-w-2xl">
