@@ -118,24 +118,33 @@ export default function GoogleMapsDisplay({ latitude, longitude, address }: Goog
               <Marker
                 position={position}
                 title={address}
-                animation={google.maps.Animation.DROP}
               />
             </GoogleMap>
           ) : (
-            <StreetViewPanorama
-              position={position}
-              visible={true}
+            <GoogleMap
+              mapContainerStyle={mapContainerStyle}
+              center={position}
+              zoom={16}
               options={{
-                pov: { heading: 0, pitch: 0 },
-                zoom: 1,
-                addressControl: false,
+                streetView: null,
+                mapTypeControl: false,
                 fullscreenControl: false,
-                panControl: true,
-                zoomControl: true
+                zoomControl: false
               }}
             >
-              <div style={{ width: '100%', height: '450px' }} />
-            </StreetViewPanorama>
+              <StreetViewPanorama
+                position={position}
+                visible={true}
+                options={{
+                  pov: { heading: 0, pitch: 0 },
+                  zoom: 1,
+                  addressControl: false,
+                  fullscreenControl: false,
+                  panControl: true,
+                  zoomControl: true
+                }}
+              />
+            </GoogleMap>
           )}
         </div>
 
