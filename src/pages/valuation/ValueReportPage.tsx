@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   FileText, MapPin, Home, Ruler,
-  ArrowRight, TrendingUp, TrendingDown, Minus, Loader2
+  ArrowRight, TrendingUp, TrendingDown, Minus, Loader2, Sparkles
 } from 'lucide-react';
 import Layout from '../../components/layout/Layout';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import type { PropertyType, PropertyCondition, ValueReport, PriceIndicator } from '../../types/database';
+import { calculateValuation } from '../../utils/valuationAlgorithm';
+import { findComparableProperties } from '../../utils/comparableProperties';
+import type { PropertyType, PropertyCondition, ValueReport, PriceIndicator, NeighborhoodCharacteristics } from '../../types/database';
 
 const propertyTypes = [
   { value: 'apartment', label: 'Departamento' },
@@ -22,6 +24,44 @@ const conditions = [
   { value: 'good', label: 'Bueno' },
   { value: 'fair', label: 'Regular' },
   { value: 'to_renovate', label: 'A refaccionar' }
+];
+
+const amenitiesList = [
+  { value: 'pool', label: 'Pileta' },
+  { value: 'gym', label: 'Gimnasio' },
+  { value: 'security', label: 'Seguridad 24hs' },
+  { value: 'laundry', label: 'Lavadero' },
+  { value: 'balcony', label: 'Balcón' },
+  { value: 'terrace', label: 'Terraza' },
+  { value: 'garden', label: 'Jardín' },
+  { value: 'elevator', label: 'Ascensor' },
+  { value: 'ac', label: 'Aire acondicionado' },
+  { value: 'heating', label: 'Calefacción' },
+  { value: 'storage', label: 'Baulera' }
+];
+
+const orientations = [
+  { value: 'north', label: 'Norte' },
+  { value: 'south', label: 'Sur' },
+  { value: 'east', label: 'Este' },
+  { value: 'west', label: 'Oeste' },
+  { value: 'northeast', label: 'Noreste' },
+  { value: 'northwest', label: 'Noroeste' },
+  { value: 'southeast', label: 'Sureste' },
+  { value: 'southwest', label: 'Suroeste' }
+];
+
+const lightingOptions = [
+  { value: 'excellent', label: 'Excelente' },
+  { value: 'good', label: 'Buena' },
+  { value: 'average', label: 'Regular' },
+  { value: 'poor', label: 'Pobre' }
+];
+
+const noiseOptions = [
+  { value: 'quiet', label: 'Silencioso' },
+  { value: 'moderate', label: 'Moderado' },
+  { value: 'noisy', label: 'Ruidoso' }
 ];
 
 const indicatorConfig = {
@@ -48,154 +88,6 @@ const indicatorConfig = {
   }
 };
 
-function generateMockReport(
-  address: string,
-  city: string,
-  province: string,
-  neighborhood: string,
-  propertyType: PropertyType,
-  coveredArea: number,
-  totalArea: number | null,
-  condition: PropertyCondition,
-  rooms: number,
-  bathrooms: number,
-  reportType: 'seller' | 'buyer',
-  askedPrice?: number
-): Omit<ValueReport, 'id' | 'user_id' | 'property_id' | 'created_at'> {
-  const baseCityPrice: Record<string, number> = {
-    'Buenos Aires': 2600,
-    'default': 1500
-  };
-
-  const neighborhoodFactor: Record<string, number> = {
-    'Palermo': 1.15,
-    'Villa Crespo': 1.05,
-    'Recoleta': 1.18,
-    'Belgrano': 1.12,
-    'Caballito': 1.03,
-    'default': 1.0
-  };
-
-  const uncoveredArea =
-    totalArea && totalArea > coveredArea
-      ? totalArea - coveredArea
-      : 0;
-
-  const effectiveArea = coveredArea + uncoveredArea * 0.35;
-
-  const layoutEfficiency =
-    rooms <= 2 ? 1.05 :
-    rooms === 3 ? 1.0 :
-    rooms === 4 ? 0.97 :
-    0.94;
-
-  const typeFactor: Record<PropertyType, number> = {
-    apartment: 1.0,
-    ph: 0.95,
-    house: 0.9,
-    land: 0.4
-  };
-
-  const conditionFactor: Record<PropertyCondition, number> = {
-    new: 1.25,
-    excellent: 1.12,
-    good: 1.0,
-    fair: 0.88,
-    to_renovate: 0.7
-  };
-
-  const agePenalty =
-    condition === 'new' ? 1.0 :
-    condition === 'excellent' ? 0.98 :
-    condition === 'good' ? 0.95 :
-    0.9;
-
-  const pricePerSqm =
-    (baseCityPrice[city] || baseCityPrice.default) *
-    (neighborhoodFactor[neighborhood] || neighborhoodFactor.default) *
-    typeFactor[propertyType] *
-    layoutEfficiency *
-    conditionFactor[condition] *
-    agePenalty;
-
-  const suggestedPrice = Math.round(effectiveArea * pricePerSqm);
-
-  const liquidityScore =
-    (neighborhoodFactor[neighborhood] || neighborhoodFactor.default) *
-    layoutEfficiency *
-    conditionFactor[condition];
-
-  const variance =
-    liquidityScore > 1.15 ? 0.12 :
-    liquidityScore > 1.0  ? 0.15 :
-    liquidityScore > 0.9  ? 0.18 :
-                            0.22;
-
-  const estimatedMin = Math.round(suggestedPrice * (1 - variance));
-  const estimatedMax = Math.round(suggestedPrice * (1 + variance));
-
-  const estimated_sale_days =
-    liquidityScore > 1.2 ? 30 :
-    liquidityScore > 1.1 ? 45 :
-    liquidityScore > 1.0 ? 60 :
-    liquidityScore > 0.9 ? 90 :
-                           120;
-
-  let price_indicator: PriceIndicator = 'market';
-  if (askedPrice) {
-    const diff = (askedPrice - suggestedPrice) / suggestedPrice;
-    if (diff > 0.1) price_indicator = 'overpriced';
-    else if (diff < -0.1) price_indicator = 'opportunity';
-  }
-
-  const comparables = [
-    {
-      id: '1',
-      address: `${address.split(' ')[0]} ${Math.floor(Math.random() * 1000)}`,
-      price: Math.round(suggestedPrice * (0.9 + Math.random() * 0.2)),
-      covered_area: coveredArea + Math.floor(Math.random() * 20) - 10,
-      price_per_sqm: Math.round(pricePerSqm * (0.95 + Math.random() * 0.1)),
-      days_on_market: Math.floor(Math.random() * 90) + 15
-    },
-    {
-      id: '2',
-      address: `Calle ${Math.floor(Math.random() * 100)}`,
-      price: Math.round(suggestedPrice * (0.85 + Math.random() * 0.3)),
-      covered_area: coveredArea + Math.floor(Math.random() * 30) - 15,
-      price_per_sqm: Math.round(pricePerSqm * (0.9 + Math.random() * 0.2)),
-      days_on_market: Math.floor(Math.random() * 120) + 10
-    },
-    {
-      id: '3',
-      address: `Av. ${['Principal', 'Central', 'Norte', 'Sur'][Math.floor(Math.random() * 4)]} ${Math.floor(Math.random() * 500)}`,
-      price: Math.round(suggestedPrice * (0.95 + Math.random() * 0.15)),
-      covered_area: coveredArea + Math.floor(Math.random() * 15) - 7,
-      price_per_sqm: Math.round(pricePerSqm * (0.92 + Math.random() * 0.16)),
-      days_on_market: Math.floor(Math.random() * 60) + 20
-    }
-  ];
-
-  return {
-    report_type: reportType,
-    address,
-    city,
-    neighborhood,
-    province,
-    property_type: propertyType,
-    covered_area: coveredArea,
-    total_area: totalArea,
-    property_condition: condition,
-    rooms,
-    bathrooms,
-    estimated_min: estimatedMin,
-    estimated_max: estimatedMax,
-    suggested_price: suggestedPrice,
-    price_indicator: price_indicator,
-    estimated_sale_days: estimated_sale_days,
-    comparables
-  };
-}
-
 export default function ValueReportPage() {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
@@ -213,10 +105,27 @@ export default function ValueReportPage() {
     province: '',
     propertyType: 'apartment' as PropertyType,
     coveredArea: '',
+    semiCoveredArea: '',
     totalArea: '',
     condition: 'good' as PropertyCondition,
     rooms: '',
+    bedrooms: '',
     bathrooms: '',
+    floorNumber: '',
+    totalFloors: '',
+    hasElevator: false,
+    orientation: '',
+    amenities: [] as string[],
+    buildingAge: '',
+    yearBuilt: '',
+    renovationYear: '',
+    buildingType: '',
+    monthlyExpenses: '',
+    parkingSpaces: '',
+    propertyLayout: '',
+    naturalLighting: '',
+    noiseLevel: '',
+    viewQuality: '',
     askedPrice: '',
     contactName: '',
     contactEmail: '',
@@ -227,71 +136,159 @@ export default function ValueReportPage() {
     setFormData(prev => ({ ...prev, [key]: value }));
   };
 
+  const toggleAmenity = (amenity: string) => {
+    setFormData(prev => ({
+      ...prev,
+      amenities: prev.amenities.includes(amenity)
+        ? prev.amenities.filter(a => a !== amenity)
+        : [...prev.amenities, amenity]
+    }));
+  };
+
   const generateReport = async () => {
     setLoading(true);
 
-    const reportData = generateMockReport(
-      formData.address,
-      formData.city,
-      formData.province,
-      formData.neighborhood,
-      formData.propertyType,
-      parseFloat(formData.coveredArea),
-      formData.totalArea ? parseFloat(formData.totalArea) : null,
-      formData.condition,
-      formData.rooms ? parseInt(formData.rooms) : 0,
-      formData.bathrooms ? parseInt(formData.bathrooms) : 0,
-      formData.reportType,
-      formData.askedPrice ? parseFloat(formData.askedPrice) : undefined
-    );
+    try {
+      const { data: neighborhoodData } = await supabase
+        .from('neighborhood_characteristics')
+        .select('*')
+        .eq('city', formData.city)
+        .eq('neighborhood', formData.neighborhood || '')
+        .maybeSingle();
 
-    if (user) {
-      const { data } = await supabase
-        .from('value_reports')
-        .insert({
+      const valuationInput = {
+        city: formData.city,
+        neighborhood: formData.neighborhood || null,
+        province: formData.province,
+        propertyType: formData.propertyType,
+        coveredArea: parseFloat(formData.coveredArea),
+        totalArea: formData.totalArea ? parseFloat(formData.totalArea) : null,
+        semiCoveredArea: formData.semiCoveredArea ? parseFloat(formData.semiCoveredArea) : null,
+        condition: formData.condition,
+        rooms: formData.rooms ? parseInt(formData.rooms) : 0,
+        bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : 0,
+        bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : 0,
+        floorNumber: formData.floorNumber ? parseInt(formData.floorNumber) : null,
+        totalFloors: formData.totalFloors ? parseInt(formData.totalFloors) : null,
+        hasElevator: formData.hasElevator,
+        orientation: formData.orientation || null,
+        amenities: formData.amenities,
+        buildingAge: formData.buildingAge ? parseInt(formData.buildingAge) : null,
+        yearBuilt: formData.yearBuilt ? parseInt(formData.yearBuilt) : null,
+        renovationYear: formData.renovationYear ? parseInt(formData.renovationYear) : null,
+        buildingType: formData.buildingType || null,
+        monthlyExpenses: formData.monthlyExpenses ? parseFloat(formData.monthlyExpenses) : null,
+        parkingSpaces: formData.parkingSpaces ? parseInt(formData.parkingSpaces) : 0,
+        propertyLayout: formData.propertyLayout || null,
+        naturalLighting: formData.naturalLighting || null,
+        noiseLevel: formData.noiseLevel || null,
+        viewQuality: formData.viewQuality || null,
+        askedPrice: formData.askedPrice ? parseFloat(formData.askedPrice) : undefined
+      };
+
+      const valuation = await calculateValuation(
+        valuationInput,
+        neighborhoodData as NeighborhoodCharacteristics | null
+      );
+
+      const comparables = await findComparableProperties(supabase, {
+        city: formData.city,
+        neighborhood: formData.neighborhood || null,
+        propertyType: formData.propertyType,
+        coveredArea: parseFloat(formData.coveredArea),
+        rooms: formData.rooms ? parseInt(formData.rooms) : 0
+      });
+
+      const reportData = {
+        report_type: formData.reportType,
+        address: formData.address,
+        city: formData.city,
+        neighborhood: formData.neighborhood || null,
+        province: formData.province,
+        property_type: formData.propertyType,
+        covered_area: parseFloat(formData.coveredArea),
+        semi_covered_area: formData.semiCoveredArea ? parseFloat(formData.semiCoveredArea) : null,
+        total_area: formData.totalArea ? parseFloat(formData.totalArea) : null,
+        property_condition: formData.condition,
+        rooms: formData.rooms ? parseInt(formData.rooms) : 0,
+        bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : 0,
+        bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : 0,
+        floor_number: formData.floorNumber ? parseInt(formData.floorNumber) : null,
+        total_floors: formData.totalFloors ? parseInt(formData.totalFloors) : null,
+        has_elevator: formData.hasElevator,
+        orientation: formData.orientation || null,
+        amenities: formData.amenities,
+        building_age: formData.buildingAge ? parseInt(formData.buildingAge) : null,
+        year_built: formData.yearBuilt ? parseInt(formData.yearBuilt) : null,
+        renovation_year: formData.renovationYear ? parseInt(formData.renovationYear) : null,
+        building_type: formData.buildingType || null,
+        monthly_expenses: formData.monthlyExpenses ? parseFloat(formData.monthlyExpenses) : null,
+        parking_spaces: formData.parkingSpaces ? parseInt(formData.parkingSpaces) : 0,
+        property_layout: formData.propertyLayout || null,
+        natural_lighting: formData.naturalLighting || null,
+        noise_level: formData.noiseLevel || null,
+        view_quality: formData.viewQuality || null,
+        estimated_min: valuation.estimatedMin,
+        estimated_max: valuation.estimatedMax,
+        suggested_price: valuation.suggestedPrice,
+        price_indicator: valuation.priceIndicator || 'market',
+        estimated_sale_days: valuation.estimatedSaleDays,
+        comparables,
+        valuation_breakdown: valuation.breakdown,
+        confidence_score: valuation.confidenceScore
+      };
+
+      if (user) {
+        const { data } = await supabase
+          .from('value_reports')
+          .insert({
+            ...reportData,
+            user_id: user.id,
+            property_id: searchParams.get('property') || null
+          })
+          .select()
+          .single();
+
+        if (data) {
+          setReport(data as ValueReport);
+
+          await supabase.from('leads').insert({
+            report_id: data.id,
+            user_id: user.id,
+            name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuario',
+            email: user.email || '',
+            lead_type: 'value_report',
+            status: 'new',
+            message: `Informe de valor generado para ${reportData.address}, ${reportData.city}`
+          });
+        }
+      } else {
+        setReport({
           ...reportData,
-          user_id: user.id,
-          property_id: searchParams.get('property') || null
-        })
-        .select()
-        .single();
-
-      if (data) {
-        setReport(data as ValueReport);
+          id: 'temp',
+          user_id: null,
+          property_id: null,
+          created_at: new Date().toISOString()
+        } as ValueReport);
 
         await supabase.from('leads').insert({
-          report_id: data.id,
-          user_id: user.id,
-          name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuario',
-          email: user.email || '',
+          report_id: null,
+          user_id: null,
+          name: formData.contactName,
+          email: formData.contactEmail,
+          phone: formData.contactPhone || null,
           lead_type: 'value_report',
           status: 'new',
-          message: `Informe de valor generado para ${reportData.address}, ${reportData.city}`
+          message: `Informe de valor generado (sin registro) para ${reportData.address}, ${reportData.city}`
         });
       }
-    } else {
-      setReport({
-        ...reportData,
-        id: 'temp',
-        user_id: null,
-        property_id: null,
-        created_at: new Date().toISOString()
-      } as ValueReport);
 
-      await supabase.from('leads').insert({
-        report_id: null,
-        user_id: null,
-        name: formData.contactName,
-        email: formData.contactEmail,
-        phone: formData.contactPhone || null,
-        lead_type: 'value_report',
-        status: 'new',
-        message: `Informe de valor generado (sin registro) para ${reportData.address}, ${reportData.city}`
-      });
+      setStep(3);
+    } catch (error) {
+      console.error('Error generating report:', error);
+    } finally {
+      setLoading(false);
     }
-
-    setStep(3);
-    setLoading(false);
   };
 
   const formatPrice = (price: number) => {
@@ -500,6 +497,210 @@ export default function ValueReportPage() {
                     type="number"
                     value={formData.bathrooms}
                     onChange={(e) => updateFormData('bathrooms', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              <div className="border-t border-gray-200 pt-6 mt-6">
+                <div className="flex items-center mb-4">
+                  <Sparkles className="h-5 w-5 text-brand-500 mr-2" />
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Información adicional para valuación más precisa
+                  </h3>
+                </div>
+                <p className="text-sm text-gray-600 mb-6">
+                  Cuanta más información proporciones, más precisa será la valuación
+                </p>
+              </div>
+
+              <div className="grid md:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    m² semicubiertos
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.semiCoveredArea}
+                    onChange={(e) => updateFormData('semiCoveredArea', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Dormitorios
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.bedrooms}
+                    onChange={(e) => updateFormData('bedrooms', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Cocheras
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.parkingSpaces}
+                    onChange={(e) => updateFormData('parkingSpaces', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Piso
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.floorNumber}
+                    onChange={(e) => updateFormData('floorNumber', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Pisos totales del edificio
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.totalFloors}
+                    onChange={(e) => updateFormData('totalFloors', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Orientación
+                  </label>
+                  <select
+                    value={formData.orientation}
+                    onChange={(e) => updateFormData('orientation', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  >
+                    <option value="">Seleccionar...</option>
+                    {orientations.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="flex items-center pt-8 space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.hasElevator}
+                      onChange={(e) => updateFormData('hasElevator', e.target.checked)}
+                      className="h-4 w-4 text-brand-500 focus:ring-brand-500 border-gray-300 rounded"
+                    />
+                    <span className="text-sm font-medium text-gray-700">
+                      Tiene ascensor
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Amenities
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {amenitiesList.map(amenity => (
+                    <label key={amenity.value} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.amenities.includes(amenity.value)}
+                        onChange={() => toggleAmenity(amenity.value)}
+                        className="h-4 w-4 text-brand-500 focus:ring-brand-500 border-gray-300 rounded"
+                      />
+                      <span className="text-sm text-gray-700">{amenity.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Año de construcción
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.yearBuilt}
+                    onChange={(e) => updateFormData('yearBuilt', e.target.value)}
+                    placeholder="Ej: 2010"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Año de renovación
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.renovationYear}
+                    onChange={(e) => updateFormData('renovationYear', e.target.value)}
+                    placeholder="Si fue renovada"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Expensas mensuales (ARS)
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.monthlyExpenses}
+                    onChange={(e) => updateFormData('monthlyExpenses', e.target.value)}
+                    placeholder="Monto mensual"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Iluminación natural
+                  </label>
+                  <select
+                    value={formData.naturalLighting}
+                    onChange={(e) => updateFormData('naturalLighting', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  >
+                    <option value="">Seleccionar...</option>
+                    {lightingOptions.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Nivel de ruido
+                  </label>
+                  <select
+                    value={formData.noiseLevel}
+                    onChange={(e) => updateFormData('noiseLevel', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  >
+                    <option value="">Seleccionar...</option>
+                    {noiseOptions.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Vista
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.viewQuality}
+                    onChange={(e) => updateFormData('viewQuality', e.target.value)}
+                    placeholder="Ej: Vista a parque"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                   />
                 </div>

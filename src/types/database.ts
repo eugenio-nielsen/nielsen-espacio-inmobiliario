@@ -103,12 +103,30 @@ export interface ValueReport {
   property_condition: PropertyCondition;
   rooms: number;
   bathrooms: number;
+  bedrooms: number;
+  floor_number: number | null;
+  total_floors: number | null;
+  has_elevator: boolean;
+  orientation: string | null;
+  amenities: string[];
+  building_age: number | null;
+  year_built: number | null;
+  renovation_year: number | null;
+  building_type: string | null;
+  monthly_expenses: number | null;
+  parking_spaces: number;
+  property_layout: string | null;
+  natural_lighting: string | null;
+  noise_level: string | null;
+  view_quality: string | null;
   estimated_min: number;
   estimated_max: number;
   suggested_price: number;
   price_indicator: PriceIndicator;
   estimated_sale_days: number | null;
   comparables: Comparable[];
+  valuation_breakdown: ValuationBreakdown;
+  confidence_score: number | null;
   created_at: string;
 }
 
@@ -119,6 +137,75 @@ export interface Comparable {
   covered_area: number;
   price_per_sqm: number;
   days_on_market: number;
+}
+
+export interface ValuationBreakdown {
+  base_price_per_sqm: number;
+  effective_area: number;
+  location_factor: number;
+  property_type_factor: number;
+  condition_factor: number;
+  floor_adjustment: number;
+  orientation_bonus: number;
+  parking_value: number;
+  amenities_score: number;
+  age_depreciation: number;
+  layout_efficiency: number;
+  quality_adjustments: number;
+  final_price_per_sqm: number;
+  factors_applied: Array<{
+    name: string;
+    value: number;
+    impact: string;
+  }>;
+}
+
+export interface NeighborhoodCharacteristics {
+  id: string;
+  city: string;
+  neighborhood: string;
+  province: string;
+  avg_price_per_sqm: number | null;
+  median_price_per_sqm: number | null;
+  avg_days_on_market: number | null;
+  market_velocity: string | null;
+  transport_score: number | null;
+  schools_score: number | null;
+  commerce_score: number | null;
+  safety_score: number | null;
+  description: string | null;
+  last_updated: string;
+  created_at: string;
+}
+
+export interface MarketTrend {
+  id: string;
+  city: string;
+  neighborhood: string | null;
+  province: string;
+  property_type: PropertyType;
+  period_start: string;
+  period_end: string;
+  avg_price_per_sqm: number;
+  median_price_per_sqm: number;
+  total_listings: number;
+  total_sales: number;
+  avg_days_on_market: number | null;
+  price_change_percentage: number | null;
+  created_at: string;
+}
+
+export interface ValuationFactor {
+  id: string;
+  factor_name: string;
+  factor_category: string;
+  weight: number;
+  min_value: number | null;
+  max_value: number | null;
+  description: string | null;
+  is_active: boolean;
+  updated_at: string;
+  created_at: string;
 }
 
 export interface ArticleCategory {
@@ -257,6 +344,21 @@ export interface Database {
         Row: VisitAppointment;
         Insert: Omit<VisitAppointment, 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Omit<VisitAppointment, 'id' | 'created_at'>>;
+      };
+      neighborhood_characteristics: {
+        Row: NeighborhoodCharacteristics;
+        Insert: Omit<NeighborhoodCharacteristics, 'id' | 'created_at' | 'last_updated'>;
+        Update: Partial<Omit<NeighborhoodCharacteristics, 'id'>>;
+      };
+      market_trends: {
+        Row: MarketTrend;
+        Insert: Omit<MarketTrend, 'id' | 'created_at'>;
+        Update: Partial<Omit<MarketTrend, 'id'>>;
+      };
+      valuation_factors: {
+        Row: ValuationFactor;
+        Insert: Omit<ValuationFactor, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<ValuationFactor, 'id' | 'created_at'>>;
       };
     };
   };
