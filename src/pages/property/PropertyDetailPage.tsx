@@ -8,7 +8,7 @@ import {
 import Layout from '../../components/layout/Layout';
 import ContactModal from '../../components/property/ContactModal';
 import ScheduleVisitModal from '../../components/property/ScheduleVisitModal';
-import PropertyMap from '../../components/property/PropertyMap';
+import GoogleMapsDisplay from '../../components/property/GoogleMapsDisplay';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import type { Property, PropertyImage, PropertyVideo, PropertyPlan, Profile } from '../../types/database';
@@ -428,8 +428,7 @@ export default function PropertyDetailPage() {
 
               {property.latitude && property.longitude && (
                 <div className="bg-white rounded-xl shadow-elegant p-8">
-                  <h2 className="font-serif text-2xl font-semibold text-content mb-5">Ubicación</h2>
-                  <PropertyMap
+                  <GoogleMapsDisplay
                     latitude={property.latitude}
                     longitude={property.longitude}
                     address={property.address}

@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import Layout from '../../components/layout/Layout';
 import PropertyImageUpload from '../../components/property/PropertyImageUpload';
+import GoogleMapsPicker from '../../components/property/GoogleMapsPicker';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import type { PropertyType, OperationType, PropertyCondition, PropertyImage } from '../../types/database';
@@ -62,6 +63,8 @@ export default function PublishPropertyPage() {
     city: '',
     neighborhood: '',
     province: '',
+    latitude: null as number | null,
+    longitude: null as number | null,
     coveredArea: '',
     semiCoveredArea: '',
     totalArea: '',
@@ -166,6 +169,8 @@ export default function PublishPropertyPage() {
         city: formData.city,
         neighborhood: formData.neighborhood,
         province: formData.province,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
         covered_area: formData.coveredArea ? parseFloat(formData.coveredArea) : null,
         semi_covered_area: formData.semiCoveredArea ? parseFloat(formData.semiCoveredArea) : null,
         total_area: formData.totalArea ? parseFloat(formData.totalArea) : null,
@@ -329,10 +334,27 @@ export default function PublishPropertyPage() {
                   ¿Dónde está ubicada?
                 </h2>
 
-                <div className="space-y-4">
+                <GoogleMapsPicker
+                  address={formData.address}
+                  onAddressChange={(address) => updateFormData('address', address)}
+                  onLocationChange={(lat, lng) => {
+                    updateFormData('latitude', lat);
+                    updateFormData('longitude', lng);
+                  }}
+                  initialLat={formData.latitude}
+                  initialLng={formData.longitude}
+                  city={formData.city}
+                  neighborhood={formData.neighborhood}
+                  province={formData.province}
+                  onCityChange={(city) => updateFormData('city', city)}
+                  onNeighborhoodChange={(neighborhood) => updateFormData('neighborhood', neighborhood)}
+                  onProvinceChange={(province) => updateFormData('province', province)}
+                />
+
+                <div className="mt-6 space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Dirección *
+                      Dirección completa *
                     </label>
                     <input
                       type="text"
