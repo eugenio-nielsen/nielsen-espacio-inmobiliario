@@ -2,7 +2,7 @@ export type PropertyType = 'apartment' | 'house' | 'ph' | 'land';
 export type OperationType = 'sale' | 'rent';
 export type PropertyCondition = 'new' | 'excellent' | 'good' | 'fair' | 'to_renovate';
 export type PropertyStatus = 'draft' | 'pending' | 'active' | 'sold' | 'paused';
-export type UserRole = 'visitor' | 'seller' | 'buyer' | 'admin';
+export type UserRole = 'visitor' | 'seller' | 'buyer' | 'admin' | 'super_admin';
 export type ReportType = 'seller' | 'buyer';
 export type PriceIndicator = 'overpriced' | 'market' | 'opportunity';
 export type ArticleStatus = 'draft' | 'published';
@@ -10,6 +10,8 @@ export type LeadType = 'property_inquiry' | 'value_report' | 'advisor_contact';
 export type LeadStatus = 'new' | 'contacted' | 'qualified' | 'converted' | 'lost';
 export type VisitAppointmentStatus = 'pending' | 'confirmed' | 'cancelled';
 export type TimeSlot = 'morning' | 'midday' | 'afternoon';
+export type NotificationType = 'user_registration' | 'new_property' | 'property_status_change' | 'new_lead' | 'role_change' | 'suspicious_activity';
+export type AuditActionType = 'property_create' | 'property_update' | 'property_delete' | 'user_update' | 'lead_update' | 'data_export' | 'role_change';
 
 export interface Profile {
   id: string;
@@ -284,6 +286,34 @@ export interface VisitAppointment {
   updated_at: string;
 }
 
+export interface AdminNotification {
+  id: string;
+  notification_type: NotificationType;
+  title: string;
+  message: string;
+  related_user_id: string | null;
+  related_property_id: string | null;
+  related_lead_id: string | null;
+  email_sent: boolean;
+  email_sent_at: string | null;
+  read: boolean;
+  read_at: string | null;
+  created_at: string;
+}
+
+export interface AuditLog {
+  id: string;
+  admin_id: string;
+  action_type: AuditActionType;
+  entity_type: string;
+  entity_id: string | null;
+  affected_user_id: string | null;
+  changes: Record<string, any> | null;
+  description: string | null;
+  ip_address: string | null;
+  created_at: string;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -361,6 +391,16 @@ export interface Database {
         Row: ValuationFactor;
         Insert: Omit<ValuationFactor, 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Omit<ValuationFactor, 'id' | 'created_at'>>;
+      };
+      admin_notifications: {
+        Row: AdminNotification;
+        Insert: Omit<AdminNotification, 'id' | 'created_at' | 'email_sent' | 'email_sent_at' | 'read' | 'read_at'>;
+        Update: Partial<Omit<AdminNotification, 'id' | 'created_at'>>;
+      };
+      audit_log: {
+        Row: AuditLog;
+        Insert: Omit<AuditLog, 'id' | 'created_at'>;
+        Update: never;
       };
     };
   };

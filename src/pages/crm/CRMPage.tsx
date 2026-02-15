@@ -8,10 +8,10 @@ import {
 import Layout from '../../components/layout/Layout';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import type { Lead, LeadStatus, Property, PropertyImage, VisitAppointment } from '../../types/database';
+import type { Lead, LeadStatus, Property, PropertyImage, VisitAppointment, Profile } from '../../types/database';
 
 type LeadWithProperty = Lead & {
-  property: (Property & { images: PropertyImage[] }) | null;
+  property: (Property & { images: PropertyImage[]; owner?: Profile }) | null;
 };
 
 const statusConfig: Record<LeadStatus, { label: string; color: string; bgColor: string; icon: typeof Clock }> = {
@@ -31,7 +31,7 @@ const statusOptions: { value: LeadStatus; label: string }[] = [
 ];
 
 export default function CRMPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   const [leads, setLeads] = useState<LeadWithProperty[]>([]);
@@ -59,35 +59,66 @@ export default function CRMPage() {
   async function fetchData() {
     setLoading(true);
 
-    const { data: propsData } = await supabase
-      .from('properties')
-      .select('*')
-      .eq('user_id', user!.id);
+    const isSuperAdmin = profile?.role === 'super_admin';
 
-    if (propsData) {
-      setProperties(propsData);
+    if (isSuperAdmin) {
+      const { data: allPropsData } = await supabase
+        .from('properties')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      const propertyIds = propsData.map(p => p.id);
+      if (allPropsData) {
+        setProperties(allPropsData);
+      }
 
-      if (propertyIds.length > 0) {
-        const { data: leadsData } = await supabase
-          .from('leads')
-          .select('*, property:properties(*, images:property_images(*))')
-          .in('property_id', propertyIds)
-          .order('created_at', { ascending: false });
+      const { data: allLeadsData } = await supabase
+        .from('leads')
+        .select('*, property:properties(*, images:property_images(*), owner:profiles(*))')
+        .order('created_at', { ascending: false });
 
-        if (leadsData) {
-          setLeads(leadsData as LeadWithProperty[]);
-        }
+      if (allLeadsData) {
+        setLeads(allLeadsData as LeadWithProperty[]);
+      }
 
-        const { data: visitsData } = await supabase
-          .from('visit_appointments')
-          .select('*')
-          .in('property_id', propertyIds)
-          .order('visit_date', { ascending: false });
+      const { data: allVisitsData } = await supabase
+        .from('visit_appointments')
+        .select('*')
+        .order('visit_date', { ascending: false });
 
-        if (visitsData) {
-          setVisits(visitsData);
+      if (allVisitsData) {
+        setVisits(allVisitsData);
+      }
+    } else {
+      const { data: propsData } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('user_id', user!.id);
+
+      if (propsData) {
+        setProperties(propsData);
+
+        const propertyIds = propsData.map(p => p.id);
+
+        if (propertyIds.length > 0) {
+          const { data: leadsData } = await supabase
+            .from('leads')
+            .select('*, property:properties(*, images:property_images(*))')
+            .in('property_id', propertyIds)
+            .order('created_at', { ascending: false });
+
+          if (leadsData) {
+            setLeads(leadsData as LeadWithProperty[]);
+          }
+
+          const { data: visitsData } = await supabase
+            .from('visit_appointments')
+            .select('*')
+            .in('property_id', propertyIds)
+            .order('visit_date', { ascending: false });
+
+          if (visitsData) {
+            setVisits(visitsData);
+          }
         }
       }
     }
@@ -258,6 +289,9 @@ export default function CRMPage() {
                     <tr>
                       <th className="px-4 py-3 text-sm font-semibold text-gray-600">Contacto</th>
                       <th className="px-4 py-3 text-sm font-semibold text-gray-600">Propiedad</th>
+                      {profile?.role === 'super_admin' && (
+                        <th className="px-4 py-3 text-sm font-semibold text-gray-600">Propietario</th>
+                      )}
                       <th className="px-4 py-3 text-sm font-semibold text-gray-600">Fecha</th>
                       <th className="px-4 py-3 text-sm font-semibold text-gray-600">Estado</th>
                       <th className="px-4 py-3 text-sm font-semibold text-gray-600"></th>
@@ -298,6 +332,20 @@ export default function CRMPage() {
                               <span className="text-sm text-gray-400">-</span>
                             )}
                           </td>
+                          {profile?.role === 'super_admin' && (
+                            <td className="px-4 py-4">
+                              {lead.property?.owner ? (
+                                <div>
+                                  <p className="text-sm font-medium text-gray-900">
+                                    {lead.property.owner.full_name || 'Sin nombre'}
+                                  </p>
+                                  <p className="text-xs text-gray-500">{lead.property.owner.email}</p>
+                                </div>
+                              ) : (
+                                <span className="text-sm text-gray-400">-</span>
+                              )}
+                            </td>
+                          )}
                           <td className="px-4 py-4">
                             <div className="flex items-center space-x-2 text-sm text-gray-600">
                               <Calendar className="h-4 w-4" />

@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, Home, FileText, Calculator, BookOpen, User, LogOut } from 'lucide-react';
+import { Menu, X, Home, FileText, Calculator, BookOpen, User, LogOut, Shield } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, isSuperAdmin, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -62,6 +62,11 @@ export default function Header() {
             <NavLink to="/guias" icon={BookOpen} isLight={isHomePage && !isScrolled}>
               Guias
             </NavLink>
+            {isSuperAdmin && (
+              <NavLink to="/admin" icon={Shield} isLight={isHomePage && !isScrolled}>
+                Admin
+              </NavLink>
+            )}
           </nav>
 
           <div className="hidden lg:flex items-center space-x-4">
@@ -122,6 +127,11 @@ export default function Header() {
               <MobileNavLink to="/guias" icon={BookOpen} onClick={() => setIsMenuOpen(false)}>
                 Guias
               </MobileNavLink>
+              {isSuperAdmin && (
+                <MobileNavLink to="/admin" icon={Shield} onClick={() => setIsMenuOpen(false)}>
+                  Admin
+                </MobileNavLink>
+              )}
 
               <div className="pt-4 mt-4 border-t border-gray-100">
                 {user ? (
