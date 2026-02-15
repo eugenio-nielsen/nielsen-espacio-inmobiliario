@@ -32,20 +32,8 @@ export default function PropertyCard({ property, onFavorite, isFavorite }: Prope
     }).format(price);
   };
 
-  const formatLocation = (neighborhood: string | null, city: string, province: string) => {
-    const parts = [];
-
-    if (neighborhood) {
-      parts.push(neighborhood);
-    }
-
-    const cityDisplay = province === 'Ciudad Autónoma de Buenos Aires' || province === 'CABA'
-      ? 'CABA'
-      : province;
-
-    parts.push(cityDisplay);
-
-    return parts.join(', ');
+  const formatLocation = (neighborhood: string | null, city: string) => {
+    return neighborhood || city;
   };
 
   return (
@@ -102,7 +90,7 @@ export default function PropertyCard({ property, onFavorite, isFavorite }: Prope
 
           <div className="flex items-center text-white/90 text-sm mb-4">
             <MapPin className="h-4 w-4 mr-1.5 flex-shrink-0" />
-            <span className="line-clamp-1">{formatLocation(property.neighborhood, property.city, property.province)}</span>
+            <span className="line-clamp-1">{formatLocation(property.neighborhood, property.city)}</span>
           </div>
 
           <div className="flex items-center justify-between text-white/90 text-sm border-t border-white/20 pt-4">

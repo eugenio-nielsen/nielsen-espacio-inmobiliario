@@ -135,18 +135,12 @@ export default function PropertyDetailPage() {
     }).format(price);
   };
 
-  const formatLocation = (address: string, neighborhood: string | null, city: string, province: string) => {
+  const formatLocation = (address: string, neighborhood: string | null) => {
     const parts = [address];
 
     if (neighborhood) {
       parts.push(neighborhood);
     }
-
-    const cityDisplay = province === 'Ciudad Autónoma de Buenos Aires' || province === 'CABA'
-      ? 'CABA'
-      : province;
-
-    parts.push(cityDisplay);
 
     return parts.join(', ');
   };
@@ -275,7 +269,7 @@ export default function PropertyDetailPage() {
 
                 <div className="flex items-start text-content-muted mb-6">
                   <MapPin className="h-5 w-5 mr-2 text-brand-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-lg">{formatLocation(property.address, property.neighborhood, property.city, property.province)}</span>
+                  <span className="text-lg">{formatLocation(property.address, property.neighborhood)}</span>
                 </div>
 
                 <div className="bg-gradient-to-br from-brand-50 to-accent-50 rounded-xl p-6 mb-6">
