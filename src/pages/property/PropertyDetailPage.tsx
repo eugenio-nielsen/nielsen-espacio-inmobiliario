@@ -3,10 +3,9 @@ import { useParams, Link } from 'react-router-dom';
 import {
   MapPin, Maximize, BedDouble, Bath, Car, Heart, Share2,
   ChevronLeft, ChevronRight, Mail, Calendar, Eye,
-  CheckCircle, Home, Loader2, TrendingUp, FileText
+  CheckCircle, Home, Loader2, FileText
 } from 'lucide-react';
 import Layout from '../../components/layout/Layout';
-import ContactModal from '../../components/property/ContactModal';
 import ScheduleVisitModal from '../../components/property/ScheduleVisitModal';
 import GoogleMapsDisplay from '../../components/property/GoogleMapsDisplay';
 import { supabase } from '../../lib/supabase';
@@ -57,8 +56,15 @@ export default function PropertyDetailPage() {
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
-  const [showContactModal, setShowContactModal] = useState(false);
   const [showScheduleVisitModal, setShowScheduleVisitModal] = useState(false);
+  const [contactForm, setContactForm] = useState({
+    name: '',
+    email: '',
+    whatsapp: '',
+    message: ''
+  });
+  const [submittingContact, setSubmittingContact] = useState(false);
+  const [contactSuccess, setContactSuccess] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -70,8 +76,28 @@ export default function PropertyDetailPage() {
   useEffect(() => {
     if (user && id) {
       checkFavorite();
+      fetchUserProfile();
     }
   }, [user, id]);
+
+  async function fetchUserProfile() {
+    if (!user) return;
+
+    const { data } = await supabase
+      .from('profiles')
+      .select('full_name, email, phone')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (data) {
+      setContactForm({
+        name: data.full_name || '',
+        email: data.email || '',
+        whatsapp: data.phone || '',
+        message: ''
+      });
+    }
+  }
 
   async function fetchProperty() {
     const { data, error } = await supabase
@@ -125,6 +151,46 @@ export default function PropertyDetailPage() {
         .insert({ user_id: user.id, property_id: id });
       setIsFavorite(true);
     }
+  }
+
+  async function handleContactSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!id || submittingContact) return;
+
+    setSubmittingContact(true);
+
+    const { error } = await supabase
+      .from('leads')
+      .insert({
+        property_id: id,
+        user_id: user?.id || null,
+        name: contactForm.name,
+        email: contactForm.email,
+        phone: contactForm.whatsapp,
+        message: contactForm.message || null,
+        lead_type: 'property_inquiry',
+        status: 'new'
+      });
+
+    if (!error) {
+      setContactSuccess(true);
+      if (!user) {
+        setContactForm({
+          name: '',
+          email: '',
+          whatsapp: '',
+          message: ''
+        });
+      } else {
+        setContactForm({
+          ...contactForm,
+          message: ''
+        });
+      }
+      setTimeout(() => setContactSuccess(false), 5000);
+    }
+
+    setSubmittingContact(false);
   }
 
   const formatPrice = (price: number, currency: string) => {
@@ -492,32 +558,99 @@ export default function PropertyDetailPage() {
               <div className="bg-white rounded-xl shadow-elegant p-6 sticky top-24 space-y-6">
                 <div>
                   <h3 className="font-serif text-lg font-semibold text-content mb-4">Contactar</h3>
-                  <div className="space-y-3">
+                  <form onSubmit={handleContactSubmit} className="space-y-4">
+                    <div>
+                      <label htmlFor="name" className="block text-sm font-medium text-content mb-1.5">
+                        Nombre completo
+                      </label>
+                      <input
+                        type="text"
+                        id="name"
+                        required
+                        value={contactForm.name}
+                        onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                        placeholder="Tu nombre"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="email" className="block text-sm font-medium text-content mb-1.5">
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        id="email"
+                        required
+                        value={contactForm.email}
+                        onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                        placeholder="tu@email.com"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="whatsapp" className="block text-sm font-medium text-content mb-1.5">
+                        WhatsApp
+                      </label>
+                      <input
+                        type="tel"
+                        id="whatsapp"
+                        required
+                        value={contactForm.whatsapp}
+                        onChange={(e) => setContactForm({ ...contactForm, whatsapp: e.target.value })}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                        placeholder="+54 9 11 1234-5678"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="message" className="block text-sm font-medium text-content mb-1.5">
+                        Mensaje (opcional)
+                      </label>
+                      <textarea
+                        id="message"
+                        rows={3}
+                        value={contactForm.message}
+                        onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent resize-none"
+                        placeholder="¿Alguna pregunta específica?"
+                      />
+                    </div>
+
+                    {contactSuccess && (
+                      <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg text-sm">
+                        Mensaje enviado correctamente
+                      </div>
+                    )}
+
                     <button
-                      onClick={() => setShowContactModal(true)}
-                      className="w-full bg-brand-500 text-white py-3.5 rounded-lg font-semibold hover:bg-brand-600 transition-all hover:shadow-lg flex items-center justify-center space-x-2"
+                      type="submit"
+                      disabled={submittingContact}
+                      className="w-full bg-brand-500 text-white py-3.5 rounded-lg font-semibold hover:bg-brand-600 transition-all hover:shadow-lg flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <Mail className="h-5 w-5" />
-                      <span>Enviar mensaje</span>
+                      {submittingContact ? (
+                        <>
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                          <span>Enviando...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Mail className="h-5 w-5" />
+                          <span>Enviar consulta</span>
+                        </>
+                      )}
                     </button>
+
                     <button
+                      type="button"
                       onClick={() => setShowScheduleVisitModal(true)}
                       className="w-full border-2 border-accent-500 text-accent-600 py-3.5 rounded-lg font-semibold hover:bg-accent-50 transition-all flex items-center justify-center space-x-2"
                     >
                       <Calendar className="h-5 w-5" />
                       <span>Agendar Visita</span>
                     </button>
-                  </div>
-                </div>
-
-                <div className="border-t border-gray-100 pt-6">
-                  <Link
-                    to={`/informe-valor?property=${property.id}`}
-                    className="w-full bg-gradient-to-br from-accent-500 to-accent-600 text-white py-3.5 rounded-lg font-semibold hover:from-accent-600 hover:to-accent-700 transition-all hover:shadow-lg flex items-center justify-center space-x-2"
-                  >
-                    <TrendingUp className="h-5 w-5" />
-                    <span>Consultar valor real</span>
-                  </Link>
+                  </form>
                 </div>
 
                 <div className="border-t border-gray-100 pt-6">
@@ -531,13 +664,6 @@ export default function PropertyDetailPage() {
           </div>
         </div>
       </div>
-
-      {showContactModal && (
-        <ContactModal
-          property={property}
-          onClose={() => setShowContactModal(false)}
-        />
-      )}
 
       {showScheduleVisitModal && (
         <ScheduleVisitModal
