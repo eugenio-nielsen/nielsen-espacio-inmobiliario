@@ -776,15 +776,32 @@ export default function PublishPropertyPage() {
                 </div>
 
                 {multimediaTab === 'images' && (
-                  <PropertyImageUpload
-                    images={formData.images}
-                    onImagesChange={updateImages}
-                    maxImages={10}
-                  />
+                  <>
+                    <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-sm text-blue-800">
+                        <strong>Multimedia total: {formData.images.length + formData.videoUrls.filter(u => u.trim()).length + formData.planUrls.filter(u => u.trim()).length} / 25</strong>
+                        <br />
+                        Puedes subir un máximo de 25 elementos en total entre imágenes, videos y planos.
+                      </p>
+                    </div>
+                    <PropertyImageUpload
+                      images={formData.images}
+                      onImagesChange={updateImages}
+                      maxImages={Math.max(1, 25 - formData.videoUrls.filter(u => u.trim()).length - formData.planUrls.filter(u => u.trim()).length)}
+                    />
+                  </>
                 )}
 
                 {multimediaTab === 'videos' && (
                   <div>
+                    <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-sm text-blue-800">
+                        <strong>Multimedia total: {formData.images.length + formData.videoUrls.filter(u => u.trim()).length + formData.planUrls.filter(u => u.trim()).length} / 25</strong>
+                        <br />
+                        Puedes subir un máximo de 25 elementos en total entre imágenes, videos y planos.
+                      </p>
+                    </div>
+
                     <p className="text-gray-600 mb-6">
                       Agrega URLs de videos de tu propiedad (YouTube, Vimeo, o enlaces directos a archivos de video).
                     </p>
@@ -812,18 +829,28 @@ export default function PublishPropertyPage() {
                       ))}
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={addVideoUrl}
-                      className="mt-4 text-brand-500 font-semibold hover:text-brand-600"
-                    >
-                      + Agregar otro video
-                    </button>
+                    {(formData.images.length + formData.videoUrls.filter(u => u.trim()).length + formData.planUrls.filter(u => u.trim()).length) < 25 && (
+                      <button
+                        type="button"
+                        onClick={addVideoUrl}
+                        className="mt-4 text-brand-500 font-semibold hover:text-brand-600"
+                      >
+                        + Agregar otro video
+                      </button>
+                    )}
                   </div>
                 )}
 
                 {multimediaTab === 'plans' && (
                   <div>
+                    <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-sm text-blue-800">
+                        <strong>Multimedia total: {formData.images.length + formData.videoUrls.filter(u => u.trim()).length + formData.planUrls.filter(u => u.trim()).length} / 25</strong>
+                        <br />
+                        Puedes subir un máximo de 25 elementos en total entre imágenes, videos y planos.
+                      </p>
+                    </div>
+
                     <p className="text-gray-600 mb-6">
                       Agrega URLs de planos de tu propiedad (archivos PDF o imágenes de los planos).
                     </p>
@@ -851,13 +878,15 @@ export default function PublishPropertyPage() {
                       ))}
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={addPlanUrl}
-                      className="mt-4 text-brand-500 font-semibold hover:text-brand-600"
-                    >
-                      + Agregar otro plano
-                    </button>
+                    {(formData.images.length + formData.videoUrls.filter(u => u.trim()).length + formData.planUrls.filter(u => u.trim()).length) < 25 && (
+                      <button
+                        type="button"
+                        onClick={addPlanUrl}
+                        className="mt-4 text-brand-500 font-semibold hover:text-brand-600"
+                      >
+                        + Agregar otro plano
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

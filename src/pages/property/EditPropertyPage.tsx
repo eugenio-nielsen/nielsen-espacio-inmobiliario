@@ -758,7 +758,7 @@ export default function EditPropertyPage() {
                   propertyId={id}
                   images={formData.images}
                   onImagesChange={updateImages}
-                  maxImages={10}
+                  maxImages={25}
                 />
               </div>
             )}

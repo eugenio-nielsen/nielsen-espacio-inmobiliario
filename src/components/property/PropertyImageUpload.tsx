@@ -322,7 +322,7 @@ export default function PropertyImageUpload({
       )}
 
       <div className="text-xs text-gray-500 space-y-1">
-        <p>Las fotos de alta calidad ayudan a vender más rápido. Puedes subir hasta {maxImages} imágenes.</p>
+        <p>Las fotos de alta calidad ayudan a vender más rápido. {maxImages === 25 ? 'Límite máximo: 25 elementos multimedia en total.' : `Puedes subir hasta ${maxImages} imágenes.`}</p>
         <p>Haz clic en la estrella para marcar la foto principal. Usa las flechas para reordenar las imágenes.</p>
       </div>
     </div>
