@@ -268,7 +268,22 @@ export interface PropertyView {
   property_id: string;
   user_id: string | null;
   ip_address: string | null;
+  session_id: string;
+  user_agent: string | null;
+  last_viewed_at: string;
+  view_count: number;
   created_at: string;
+}
+
+export interface PropertyViewStats {
+  property_id: string;
+  view_date: string;
+  unique_views: number;
+  total_views: number;
+  anonymous_views: number;
+  authenticated_views: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface VisitAppointment {
@@ -370,7 +385,12 @@ export interface Database {
       property_views: {
         Row: PropertyView;
         Insert: Omit<PropertyView, 'id' | 'created_at'>;
-        Update: never;
+        Update: Partial<Omit<PropertyView, 'id' | 'created_at' | 'property_id'>>;
+      };
+      property_view_stats: {
+        Row: PropertyViewStats;
+        Insert: Omit<PropertyViewStats, 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<PropertyViewStats, 'property_id' | 'view_date' | 'created_at'>>;
       };
       visit_appointments: {
         Row: VisitAppointment;

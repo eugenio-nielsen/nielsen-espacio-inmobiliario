@@ -118,10 +118,34 @@ export default function PropertyDetailPage() {
   }
 
   async function recordView() {
-    await supabase.from('property_views').insert({
-      property_id: id,
-      user_id: user?.id || null
-    });
+    if (!id) return;
+
+    const sessionId = getOrCreateSessionId();
+    const userAgent = navigator.userAgent;
+
+    try {
+      await supabase.rpc('record_property_view', {
+        p_property_id: id,
+        p_session_id: sessionId,
+        p_user_id: user?.id || null,
+        p_ip_address: null,
+        p_user_agent: userAgent
+      });
+    } catch (error) {
+      console.error('Error recording view:', error);
+    }
+  }
+
+  function getOrCreateSessionId(): string {
+    const SESSION_KEY = 'property_view_session_id';
+    let sessionId = sessionStorage.getItem(SESSION_KEY);
+
+    if (!sessionId) {
+      sessionId = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+      sessionStorage.setItem(SESSION_KEY, sessionId);
+    }
+
+    return sessionId;
   }
 
   async function checkFavorite() {
