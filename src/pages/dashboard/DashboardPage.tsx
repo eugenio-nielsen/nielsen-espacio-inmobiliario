@@ -329,9 +329,13 @@ export default function DashboardPage() {
               ) : (
                 <div className="space-y-4">
                   {reports.map(report => (
-                    <div key={report.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <Link
+                      key={report.id}
+                      to={`/informe-valor/${report.id}`}
+                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group"
+                    >
                       <div>
-                        <p className="font-medium text-gray-900">{report.address}</p>
+                        <p className="font-medium text-gray-900 group-hover:text-brand-500">{report.address}</p>
                         <p className="text-sm text-gray-600">
                           {report.city}, {report.province} | {report.covered_area} m²
                         </p>
@@ -339,18 +343,21 @@ export default function DashboardPage() {
                           {new Date(report.created_at).toLocaleDateString('es-AR')}
                         </p>
                       </div>
-                      <div className="text-right">
-                        <p className="font-bold text-brand-500">{formatPrice(report.suggested_price, 'USD')}</p>
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          report.price_indicator === 'opportunity' ? 'bg-green-100 text-green-700' :
-                          report.price_indicator === 'overpriced' ? 'bg-red-100 text-red-700' :
-                          'bg-amber-100 text-amber-700'
-                        }`}>
-                          {report.price_indicator === 'opportunity' ? 'Oportunidad' :
-                           report.price_indicator === 'overpriced' ? 'Sobreprecio' : 'Mercado'}
-                        </span>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <p className="font-bold text-brand-500">{formatPrice(report.suggested_price, 'USD')}</p>
+                          <span className={`text-xs px-2 py-1 rounded-full ${
+                            report.price_indicator === 'opportunity' ? 'bg-green-100 text-green-700' :
+                            report.price_indicator === 'overpriced' ? 'bg-red-100 text-red-700' :
+                            'bg-amber-100 text-amber-700'
+                          }`}>
+                            {report.price_indicator === 'opportunity' ? 'Oportunidad' :
+                             report.price_indicator === 'overpriced' ? 'Sobreprecio' : 'Mercado'}
+                          </span>
+                        </div>
+                        <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-brand-500" />
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               )}

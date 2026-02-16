@@ -9,6 +9,7 @@ import PropertyDetailPage from './pages/property/PropertyDetailPage';
 import PublishPropertyPage from './pages/property/PublishPropertyPage';
 import EditPropertyPage from './pages/property/EditPropertyPage';
 import ValueReportPage from './pages/valuation/ValueReportPage';
+import ValueReportViewPage from './pages/valuation/ValueReportViewPage';
 import ToolsPage from './pages/tools/ToolsPage';
 import GuidesPage from './pages/content/GuidesPage';
 import ArticlePage from './pages/content/ArticlePage';
@@ -32,6 +33,7 @@ function App() {
           <Route path="/publicar" element={<PublishPropertyPage />} />
           <Route path="/editar-propiedad/:id" element={<EditPropertyPage />} />
           <Route path="/informe-valor" element={<ValueReportPage />} />
+          <Route path="/informe-valor/:id" element={<ValueReportViewPage />} />
           <Route path="/herramientas" element={<ToolsPage />} />
           <Route path="/guias" element={<GuidesPage />} />
           <Route path="/guia/:slug" element={<ArticlePage />} />
