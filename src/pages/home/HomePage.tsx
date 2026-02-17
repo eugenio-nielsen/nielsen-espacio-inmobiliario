@@ -266,10 +266,10 @@ export default function HomePage() {
               Por que elegirnos
             </span>
             <h2 className="font-serif text-3xl md:text-4xl font-semibold text-content mb-4">
-              La Diferencia es Nielsen
+              La Diferencia de Espacio Inmobiliario
             </h2>
             <p className="text-content-muted max-w-2xl mx-auto">
-              Con el tiempo entendimos que el proceso inmobiliario es mucho más que una transacción. Para muchos es un momento de muchísimo temor e incertidumbre. Por eso, vinimos a hacer el proceso inmobiliario más cercano, transparente y seguro, ¡para todos!
+              Entendemos que el proceso inmobiliario es mucho más que una transacción. Para muchos es un momento de gran importancia e incertidumbre. Por eso, hacemos el proceso más cercano, transparente y seguro, ¡para todos!
             </p>
           </div>
 
@@ -377,7 +377,7 @@ export default function HomePage() {
             Comienza tu Busqueda Hoy
           </h2>
           <p className="text-white/70 text-lg mb-10 max-w-2xl mx-auto">
-            Unite a miles de usuarios que ya confian en Nielsen para encontrar
+            Unite a miles de usuarios que ya confian en Espacio Inmobiliario para encontrar
             su propiedad ideal o vender al mejor precio del mercado.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">

@@ -1,0 +1,20 @@
+<svg width="600" height="140" viewBox="0 0 600 140" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#0B1F3B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e40af;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <g>
+    <text x="300" y="55" text-anchor="middle" font-family="Playfair Display, serif" font-size="56" font-weight="600" fill="url(#logoGradient)" letter-spacing="8">
+      ESPACIO
+    </text>
+
+    <text x="300" y="105" text-anchor="middle" font-family="Outfit, sans-serif" font-size="28" font-weight="400" fill="#F97316" letter-spacing="12">
+      INMOBILIARIO
+    </text>
+
+    <line x1="100" y1="75" x2="500" y2="75" stroke="#F97316" stroke-width="1" opacity="0.3"/>
+  </g>
+</svg>

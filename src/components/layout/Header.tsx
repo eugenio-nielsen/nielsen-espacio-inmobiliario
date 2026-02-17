@@ -43,8 +43,8 @@ export default function Header() {
         <div className="flex justify-between items-center h-20">
           <Link to="/" className="flex items-center group">
             <img
-              src="/nielsen_espacio_inmobiliario.svg"
-              alt="Nielsen Espacio Inmobiliario"
+              src="/espacio_inmobiliario.svg"
+              alt="Espacio Inmobiliario"
               className={`h-16 w-auto transition-all duration-300 ${logoFilter}`}
             />
           </Link>

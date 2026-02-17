@@ -38,18 +38,12 @@ export default function LoginPage() {
           <div className="absolute inset-0 bg-gradient-to-br from-brand-900/80 to-brand-800/90" />
         </div>
         <div className="relative z-10 flex flex-col justify-between p-12 w-full">
-          <Link to="/" className="flex items-center space-x-3">
+          <Link to="/" className="flex items-center">
             <img
-              src="/nielsen_-_espacio_inmobiliario.png"
-              alt="Nielsen"
-              className="h-12 w-auto brightness-0 invert"
+              src="/espacio_inmobiliario.svg"
+              alt="Espacio Inmobiliario"
+              className="h-16 w-auto brightness-0 invert"
             />
-            <div>
-              <span className="text-xl font-semibold text-white">Nielsen</span>
-              <span className="block text-xs tracking-widest uppercase text-white/60">
-                Espacio Inmobiliario
-              </span>
-            </div>
           </Link>
 
           <div className="max-w-md">
@@ -63,7 +57,7 @@ export default function LoginPage() {
           </div>
 
           <p className="text-white/50 text-sm">
-            &copy; {new Date().getFullYear()} Nielsen | Espacio Inmobiliario
+            &copy; {new Date().getFullYear()} Espacio Inmobiliario
           </p>
         </div>
       </div>
@@ -71,18 +65,12 @@ export default function LoginPage() {
       <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-12 bg-surface-secondary">
         <div className="w-full max-w-md">
           <div className="lg:hidden text-center mb-10">
-            <Link to="/" className="inline-flex items-center space-x-3 mb-6">
+            <Link to="/" className="inline-flex items-center mb-6">
               <img
-                src="/nielsen_-_espacio_inmobiliario.png"
-                alt="Nielsen"
-                className="h-12 w-auto"
+                src="/espacio_inmobiliario.svg"
+                alt="Espacio Inmobiliario"
+                className="h-16 w-auto"
               />
-              <div className="text-left">
-                <span className="text-lg font-semibold text-content">Nielsen</span>
-                <span className="block text-xs tracking-widest uppercase text-content-muted">
-                  Espacio Inmobiliario
-                </span>
-              </div>
             </Link>
           </div>
 
