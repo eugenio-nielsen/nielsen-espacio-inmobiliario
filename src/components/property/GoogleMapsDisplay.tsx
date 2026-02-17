@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { GoogleMap, LoadScript, Marker, StreetViewPanorama } from '@react-google-maps/api';
-import { MapPin, Navigation, Maximize2 } from 'lucide-react';
+import { MapPin, Maximize2 } from 'lucide-react';
 
 const libraries: ("places" | "geometry")[] = ["places", "geometry"];
 
@@ -26,11 +26,6 @@ export default function GoogleMapsDisplay({ latitude, longitude, address }: Goog
   const onLoad = useCallback((mapInstance: google.maps.Map) => {
     setMap(mapInstance);
   }, []);
-
-  const openInGoogleMaps = () => {
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
-    window.open(url, '_blank');
-  };
 
   const toggleFullscreen = () => {
     if (map) {
@@ -148,18 +143,9 @@ export default function GoogleMapsDisplay({ latitude, longitude, address }: Goog
           )}
         </div>
 
-        <div className="flex items-start justify-between bg-gray-50 rounded-lg p-4">
-          <div className="flex-1">
-            <p className="text-sm text-gray-600 mb-1">Dirección</p>
-            <p className="font-medium text-gray-900">{address}</p>
-          </div>
-          <button
-            onClick={openInGoogleMaps}
-            className="flex items-center gap-2 px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-colors text-sm font-medium"
-          >
-            <Navigation className="h-4 w-4" />
-            Cómo llegar
-          </button>
+        <div className="bg-gray-50 rounded-lg p-4">
+          <p className="text-sm text-gray-600 mb-1">Dirección</p>
+          <p className="font-medium text-gray-900">{address}</p>
         </div>
       </div>
     </LoadScript>
