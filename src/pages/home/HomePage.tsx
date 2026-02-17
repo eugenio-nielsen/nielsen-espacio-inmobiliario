@@ -53,8 +53,8 @@ export default function HomePage() {
             </div>
 
             <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold text-white leading-tight mb-6">
-              Comprá y Vendé
-              <span className="block text-accent-400">Dueños Directo.</span>
+             Dueños Directos
+              <span className="block text-accent-400">Compra y Vende Propiedades</span>
             </h1>
 
             <p className="text-lg md:text-xl text-white/70 mb-10 leading-relaxed max-w-2xl">
