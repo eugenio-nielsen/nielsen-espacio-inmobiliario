@@ -54,7 +54,7 @@ export default function HomePage() {
 
             <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold text-white leading-tight mb-6">
              Dueños Directos
-              <span className="block text-accent-400">Compra y Vende Propiedades</span>
+              <span className="block text-accent-400">Publicá tu propiedad Gratis</span>
             </h1>
 
             <p className="text-lg md:text-xl text-white/70 mb-10 leading-relaxed max-w-2xl">
