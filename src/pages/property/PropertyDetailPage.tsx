@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import {
   MapPin, Maximize, BedDouble, Bath, Car, Heart, Share2,
   ChevronLeft, ChevronRight, Mail, Calendar, Eye,
-  CheckCircle, Home, Loader2, FileText
+  CheckCircle, Home, Loader2, FileText, ChevronDown, ChevronUp
 } from 'lucide-react';
 import Layout from '../../components/layout/Layout';
 import ScheduleVisitModal from '../../components/property/ScheduleVisitModal';
@@ -66,6 +66,7 @@ export default function PropertyDetailPage() {
   });
   const [submittingContact, setSubmittingContact] = useState(false);
   const [contactSuccess, setContactSuccess] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -541,11 +542,33 @@ export default function PropertyDetailPage() {
                 </div>
               )}
 
-              <div className="bg-white rounded-xl shadow-elegant p-8">
+              <div className="bg-white rounded-xl shadow-elegant p-6 md:p-8">
                 <h2 className="font-serif text-2xl font-semibold text-content mb-5">Descripción</h2>
-                <p className="text-content-muted text-lg leading-relaxed whitespace-pre-line">
-                  {property.description || 'Sin descripción disponible.'}
-                </p>
+                <div className="relative">
+                  <p className={`text-content-muted text-base md:text-lg leading-relaxed whitespace-pre-line ${
+                    !isDescriptionExpanded ? 'md:max-h-none max-h-[50vh] overflow-hidden' : ''
+                  }`}>
+                    {property.description || 'Sin descripción disponible.'}
+                  </p>
+                  {!isDescriptionExpanded && property.description && property.description.length > 300 && (
+                    <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent md:hidden" />
+                  )}
+                </div>
+                {property.description && property.description.length > 300 && (
+                  <button
+                    onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                    className="md:hidden mt-4 w-full flex items-center justify-center text-brand-600 hover:text-brand-700 font-semibold transition-colors"
+                  >
+                    <span className="mr-2">
+                      {isDescriptionExpanded ? 'Ver menos' : 'Ver más'}
+                    </span>
+                    {isDescriptionExpanded ? (
+                      <ChevronUp className="h-5 w-5" />
+                    ) : (
+                      <ChevronDown className="h-5 w-5" />
+                    )}
+                  </button>
+                )}
               </div>
 
               <div className="bg-white rounded-xl shadow-elegant p-8">
