@@ -52,9 +52,9 @@ export default function RegisterPage() {
         <div className="relative z-10 flex flex-col justify-between p-12 w-full">
           <Link to="/" className="flex items-center">
             <img
-              src="/espacio_inmobiliario.svg"
+              src="/Gemini_Generated_Image_exg1v3exg1v3exg1.png"
               alt="Espacio Inmobiliario"
-              className="h-16 w-auto brightness-0 invert"
+              className="h-16 w-auto rounded-md"
             />
           </Link>
 
@@ -99,9 +99,9 @@ export default function RegisterPage() {
           <div className="lg:hidden text-center mb-10">
             <Link to="/" className="inline-flex items-center mb-6">
               <img
-                src="/espacio_inmobiliario.svg"
+                src="/Gemini_Generated_Image_exg1v3exg1v3exg1.png"
                 alt="Espacio Inmobiliario"
-                className="h-16 w-auto"
+                className="h-16 w-auto rounded-md"
               />
             </Link>
           </div>

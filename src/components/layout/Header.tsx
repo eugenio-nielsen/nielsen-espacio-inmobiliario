@@ -33,19 +33,15 @@ export default function Header() {
     ? 'text-white'
     : 'text-content';
 
-  const logoFilter = isHomePage && !isScrolled
-    ? 'brightness-0 invert'
-    : '';
-
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${headerBg}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           <Link to="/" className="flex items-center group">
             <img
-              src="/espacio_inmobiliario.svg"
+              src="/Gemini_Generated_Image_exg1v3exg1v3exg1.png"
               alt="Espacio Inmobiliario"
-              className={`h-16 w-auto transition-all duration-300 ${logoFilter}`}
+              className="h-14 w-auto transition-all duration-300 rounded-md"
             />
           </Link>
 

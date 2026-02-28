@@ -15,9 +15,9 @@ export default function Footer() {
           <div className="lg:col-span-2">
             <Link to="/" className="inline-block mb-6 group">
               <img
-                src="/espacio_inmobiliario.svg"
+                src="/Gemini_Generated_Image_exg1v3exg1v3exg1.png"
                 alt="Espacio Inmobiliario"
-                className="h-20 w-auto brightness-0 invert group-hover:scale-105 transition-transform duration-300"
+                className="h-20 w-auto rounded-md group-hover:scale-105 transition-transform duration-300"
               />
             </Link>
             <p className="text-white/80 text-base leading-relaxed mb-6 max-w-md">
