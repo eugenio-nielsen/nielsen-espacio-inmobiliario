@@ -4,6 +4,7 @@ import { Plus, Loader2 } from 'lucide-react';
 import Layout from '../../components/layout/Layout';
 import PropertyCard from '../../components/property/PropertyCard';
 import PropertyFilters, { FilterValues } from '../../components/property/PropertyFilters';
+import OwnerDisclaimerBanner from '../../components/property/OwnerDisclaimerBanner';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import type { Property, PropertyImage } from '../../types/database';
@@ -144,6 +145,10 @@ export default function PropertiesPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
         <PropertyFilters filters={filters} onFilterChange={setFilters} />
+
+        <div className="mt-6 mb-8">
+          <OwnerDisclaimerBanner />
+        </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-20">

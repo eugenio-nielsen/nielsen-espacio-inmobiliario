@@ -8,6 +8,7 @@ import {
 import Layout from '../../components/layout/Layout';
 import ScheduleVisitModal from '../../components/property/ScheduleVisitModal';
 import GoogleMapsDisplay from '../../components/property/GoogleMapsDisplay';
+import OwnerDisclaimerBanner from '../../components/property/OwnerDisclaimerBanner';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import type { Property, PropertyImage, PropertyVideo, PropertyPlan, Profile } from '../../types/database';
@@ -273,6 +274,10 @@ export default function PropertyDetailPage() {
             <ChevronLeft className="h-5 w-5 mr-1" />
             Volver a propiedades
           </Link>
+
+          <div className="mb-8">
+            <OwnerDisclaimerBanner />
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
