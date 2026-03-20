@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
-  MapPin, Maximize, BedDouble, Bath, Car, Heart, Share2,
+  MapPin, Maximize, BedDouble, Bath, Car, Heart,
   ChevronLeft, ChevronRight, Mail, Calendar, Eye,
   CheckCircle, Home, Loader2, FileText, ChevronDown, ChevronUp
 } from 'lucide-react';
@@ -9,6 +9,9 @@ import Layout from '../../components/layout/Layout';
 import ScheduleVisitModal from '../../components/property/ScheduleVisitModal';
 import GoogleMapsDisplay from '../../components/property/GoogleMapsDisplay';
 import OwnerDisclaimerBanner from '../../components/property/OwnerDisclaimerBanner';
+import WhatsAppButton from '../../components/property/WhatsAppButton';
+import NeighborhoodInfo from '../../components/property/NeighborhoodInfo';
+import ShareButtons from '../../components/property/ShareButtons';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import type { Property, PropertyImage, PropertyVideo, PropertyPlan, Profile } from '../../types/database';
@@ -324,9 +327,11 @@ export default function PropertyDetailPage() {
                     >
                       <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
                     </button>
-                    <button className="p-3 rounded-full bg-white/95 backdrop-blur-sm text-gray-700 hover:bg-white transition-all shadow-lg">
-                      <Share2 className="h-5 w-5" />
-                    </button>
+                    <ShareButtons
+                      propertyTitle={property.title}
+                      propertyUrl={window.location.href}
+                      propertyPrice={formatPrice(property.price, property.currency)}
+                    />
                   </div>
                 </div>
 
@@ -547,6 +552,11 @@ export default function PropertyDetailPage() {
                 </div>
               )}
 
+              <NeighborhoodInfo
+                neighborhood={property.neighborhood}
+                city={property.city}
+              />
+
               <div className="bg-white rounded-xl shadow-elegant p-6 md:p-8">
                 <h2 className="font-serif text-2xl font-semibold text-content mb-5">Descripción</h2>
                 <div className="relative">
@@ -713,6 +723,12 @@ export default function PropertyDetailPage() {
                       <Calendar className="h-5 w-5" />
                       <span>Agendar Visita</span>
                     </button>
+
+                    <WhatsAppButton
+                      propertyTitle={property.title}
+                      propertyAddress={property.address}
+                      variant="inline"
+                    />
                   </form>
                 </div>
 
@@ -727,6 +743,12 @@ export default function PropertyDetailPage() {
           </div>
         </div>
       </div>
+
+      <WhatsAppButton
+        propertyTitle={property.title}
+        propertyAddress={property.address}
+        variant="floating"
+      />
 
       {showScheduleVisitModal && (
         <ScheduleVisitModal

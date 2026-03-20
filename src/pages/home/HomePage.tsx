@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Search, FileText, Calculator, BookOpen, ArrowRight,
-  TrendingUp, Shield, Users, CheckCircle, ChevronRight, Play
+  TrendingUp, Shield, Users, CheckCircle, ChevronRight
 } from 'lucide-react';
 import Layout from '../../components/layout/Layout';
 import PropertyCard from '../../components/property/PropertyCard';
+import HowItWorks from '../../components/home/HowItWorks';
+import NeighborhoodExplorer from '../../components/home/NeighborhoodExplorer';
 import { supabase } from '../../lib/supabase';
 import type { Property, PropertyImage } from '../../types/database';
 
@@ -105,6 +107,8 @@ export default function HomePage() {
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-surface to-transparent" />
       </section>
 
+      <HowItWorks />
+
       <section className="py-24 bg-surface-secondary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-12">
@@ -160,6 +164,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <NeighborhoodExplorer />
 
       <section className="py-24 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
