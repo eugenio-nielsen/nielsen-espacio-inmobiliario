@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Users, Mail, Phone, MessageSquare, Calendar,
   ChevronDown, Search, Filter, X, Home,
-  CheckCircle, Clock, UserCheck, XCircle, Loader2, CalendarCheck
+  CheckCircle, Clock, UserCheck, XCircle, Loader2, CalendarCheck, MessageCircle
 } from 'lucide-react';
 import Layout from '../../components/layout/Layout';
 import { supabase } from '../../lib/supabase';
@@ -466,6 +466,15 @@ function LeadDetailModal({ lead, visits, onClose, onStatusChange, updatingStatus
                 <a href={`tel:${lead.phone}`} className="hover:text-brand-500">
                   {lead.phone}
                 </a>
+                <a
+                  href={`https://wa.me/${lead.phone.replace(/[\s\-()]+/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ml-1 text-green-500 hover:text-green-600 transition-colors"
+                  title="Abrir en WhatsApp"
+                >
+                  <MessageCircle className="h-5 w-5" />
+                </a>
               </div>
             )}
             <div className="flex items-center space-x-3 text-gray-600">
@@ -593,16 +602,27 @@ function LeadDetailModal({ lead, visits, onClose, onStatusChange, updatingStatus
               className="flex-1 bg-brand-500 text-white py-3 rounded-lg font-semibold hover:bg-brand-600 transition-colors flex items-center justify-center space-x-2"
             >
               <Mail className="h-5 w-5" />
-              <span>Enviar email</span>
+              <span>Email</span>
             </a>
             {lead.phone && (
-              <a
-                href={`tel:${lead.phone}`}
-                className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2"
-              >
-                <Phone className="h-5 w-5" />
-                <span>Llamar</span>
-              </a>
+              <>
+                <a
+                  href={`tel:${lead.phone}`}
+                  className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2"
+                >
+                  <Phone className="h-5 w-5" />
+                  <span>Llamar</span>
+                </a>
+                <a
+                  href={`https://wa.me/${lead.phone.replace(/[\s\-()]+/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 bg-green-500 text-white py-3 rounded-lg font-semibold hover:bg-green-600 transition-colors flex items-center justify-center space-x-2"
+                >
+                  <MessageCircle className="h-5 w-5" />
+                  <span>WhatsApp</span>
+                </a>
+              </>
             )}
           </div>
         </div>

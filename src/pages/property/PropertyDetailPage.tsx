@@ -66,6 +66,7 @@ export default function PropertyDetailPage() {
   });
   const [submittingContact, setSubmittingContact] = useState(false);
   const [contactSuccess, setContactSuccess] = useState(false);
+  const [contactError, setContactError] = useState<string | null>(null);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   useEffect(() => {
@@ -184,6 +185,7 @@ export default function PropertyDetailPage() {
     if (!id || submittingContact) return;
 
     setSubmittingContact(true);
+    setContactError(null);
 
     const { error } = await supabase
       .from('leads')
@@ -198,8 +200,11 @@ export default function PropertyDetailPage() {
         status: 'new'
       });
 
-    if (!error) {
+    if (error) {
+      setContactError('No se pudo enviar tu consulta. Por favor, intenta nuevamente.');
+    } else {
       setContactSuccess(true);
+      setContactError(null);
       if (!user) {
         setContactForm({
           name: '',
@@ -673,6 +678,12 @@ export default function PropertyDetailPage() {
                     {contactSuccess && (
                       <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg text-sm">
                         Mensaje enviado correctamente
+                      </div>
+                    )}
+
+                    {contactError && (
+                      <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm">
+                        {contactError}
                       </div>
                     )}
 
