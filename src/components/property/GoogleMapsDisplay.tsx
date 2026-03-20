@@ -23,6 +23,17 @@ export default function GoogleMapsDisplay({ latitude, longitude, address }: Goog
 
   const position = { lat: latitude, lng: longitude };
 
+  const brandMarkerIcon = {
+    url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="44" viewBox="0 0 32 44">
+        <path d="M16 0C7.16 0 0 7.16 0 16c0 12 16 28 16 28s16-16 16-28C32 7.16 24.84 0 16 0z" fill="#1A365D"/>
+        <circle cx="16" cy="16" r="7" fill="white"/>
+      </svg>`
+    )}`,
+    scaledSize: { width: 32, height: 44 } as google.maps.Size,
+    anchor: { x: 16, y: 44 } as google.maps.Point,
+  };
+
   const onLoad = useCallback((mapInstance: google.maps.Map) => {
     setMap(mapInstance);
   }, []);
@@ -113,6 +124,7 @@ export default function GoogleMapsDisplay({ latitude, longitude, address }: Goog
               <Marker
                 position={position}
                 title={address}
+                icon={brandMarkerIcon}
               />
             </GoogleMap>
           ) : (
