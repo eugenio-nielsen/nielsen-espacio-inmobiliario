@@ -7,7 +7,6 @@ import {
 import Layout from '../../components/layout/Layout';
 import PropertyCard from '../../components/property/PropertyCard';
 import HowItWorks from '../../components/home/HowItWorks';
-import NeighborhoodExplorer from '../../components/home/NeighborhoodExplorer';
 import { supabase } from '../../lib/supabase';
 import type { Property, PropertyImage } from '../../types/database';
 
@@ -164,8 +163,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      <NeighborhoodExplorer />
 
       <section className="py-24 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
