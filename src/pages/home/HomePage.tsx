@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Search, FileText, Calculator, BookOpen, ArrowRight,
-  TrendingUp, Shield, Users, CheckCircle, ChevronRight
+  TrendingUp, Shield, Users, ChevronRight
 } from 'lucide-react';
 import Layout from '../../components/layout/Layout';
 import PropertyCard from '../../components/property/PropertyCard';
